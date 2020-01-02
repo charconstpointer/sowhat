@@ -1,5 +1,7 @@
 ![:(](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcache.desktopnexus.com%2Fthumbseg%2F2490%2F2490528-bigthumbnail.jpg&f=1&nofb=1)
 
+# sowhat scans provided dir for any mp4 files and produces thumbnails for valid vids
+
 # Flags
 ### -in
 Specifies the directory to watch for changes
