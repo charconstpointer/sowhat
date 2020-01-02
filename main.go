@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/radovskyb/watcher"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -39,7 +40,10 @@ func watch(path string) {
 func procEvent(event watcher.Event) {
 	if event.Op.String() == "CREATE" && event.Name() != "" {
 		if strings.Contains(event.Name(), ".mp4") {
-			getFrame(event.Path, "./output/"+event.Name()+".jpeg")
+			i := strings.LastIndex(event.Name(), ".")
+			getFrame(event.Path, event.Name()[0:i]+".jpeg")
+
+			//getFrame(event.Path, "./output/"+event.Name()+".jpeg")
 		}
 	}
 }
@@ -50,17 +54,15 @@ func procEventt(jobs chan watcher.Event) {
 		for {
 			select {
 			case event := <-jobs:
-				fmt.Println("<-", event)
 				procEvent(event)
 			}
 		}
 	}()
 }
 
-func getFrame(source string, output string) {
-	proc := "ffmpeg-4.2.2-amd64-static/ffmpeg"
-	fmt.Println("processing ", source, proc)
-	cmd := exec.Command(proc, "-y", "-i", source, "-ss", "00:00:01.000", "-vframes", "1", output)
+func getFrame(source string, fileName string) {
+	fmt.Println("->>", output+fileName)
+	cmd := exec.Command(ffmpeg, "-y", "-i", source, "-ss", "00:00:01.000", "-vframes", "1", output+fileName)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Fatalf("cmd.Run() failed with %s\n", err)
@@ -86,8 +88,48 @@ func configure(path string) {
 	}
 }
 
+func initProcess(in string, out string) {
+	inf, err := ioutil.ReadDir(in)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	outf, err := ioutil.ReadDir(out)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, inff := range inf {
+		matches := 0
+		for _, off := range outf {
+			if removeExtension(inff.Name()) == removeExtension(off.Name()) {
+				matches++
+			}
+		}
+		if matches == 0 {
+			fileName := removeExtension(inff.Name()) + ".jpeg"
+			fmt.Println(in + inff.Name())
+			getFrame(in+inff.Name(), fileName)
+		}
+	}
+
+}
+
+func removeExtension(file string) string {
+	i := strings.LastIndex(file, ".")
+	return file[0:i]
+}
+
+var input, output, ffmpeg string
+
 func main() {
-	folderFlag := flag.String("folder", ".", "sets the folder to watch")
+	ffmpegFlag := flag.String("ffmpeg", "ffmpeg-4.2.2-amd64-static/ffmpeg", "ffmpeg location")
+	i := flag.String("in", ".", "sets the folder to watch")
+	o := flag.String("out", ".", "output folder")
 	flag.Parse()
-	watch(*folderFlag)
+	input = *i
+	output = *o
+	ffmpeg = *ffmpegFlag
+	initProcess(input, output)
+	watch(input)
 }
