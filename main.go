@@ -72,7 +72,7 @@ func getFrame(source string, fileName string) {
 
 func configure(path string) {
 	w := watcher.New()
-	w.SetMaxEvents(conc)
+	w.SetMaxEvents(concurrentJobs)
 	w.FilterOps(watcher.Create)
 	go procEventt(w.Event)
 	if err := w.Add(path); err != nil {
@@ -121,18 +121,18 @@ func removeExtension(file string) string {
 }
 
 var input, output, ffmpeg string
-var conc int
+var concurrentJobs int
 
 func main() {
 	ffmpegFlag := flag.String("ffmpeg", "ffmpeg-4.2.2-amd64-static/ffmpeg", "ffmpeg location")
 	i := flag.String("in", ".", "sets the folder to watch")
 	o := flag.String("out", ".", "output folder")
-	concEvents := flag.Int("conc", 10, "sets the amount of maximum concurrent jobs execution")
+	concEvents := flag.Int("concurrentJobs", 10, "sets the amount of maximum concurrent jobs execution")
 	flag.Parse()
 	input = *i
 	output = *o
 	ffmpeg = *ffmpegFlag
-	conc = *concEvents
+	concurrentJobs = *concEvents
 	initProcess(input, output)
 	watch(input)
 }
