@@ -48,7 +48,7 @@ func procEvent(event watcher.Event) {
 	}
 }
 
-func procEventt(jobs chan watcher.Event) {
+func listen(jobs chan watcher.Event) {
 	go func() {
 
 		for {
@@ -74,7 +74,7 @@ func configure(path string) {
 	w := watcher.New()
 	w.SetMaxEvents(concurrentJobs)
 	w.FilterOps(watcher.Create)
-	go procEventt(w.Event)
+	go listen(w.Event)
 	if err := w.Add(path); err != nil {
 		log.Fatalln(err)
 	}
